@@ -12,9 +12,9 @@ Download this repository to your local machine, and then install the following r
 
 ## Requirements
 
-Pure data extended version and Python 3 need to be installed on your machine. 
+Pure data extended version and Python 3.8.6 need to be installed on your machine. 
 - Download PD extended at https://puredata.info/downloads/pd-extended
-- If you are not a Python user, I recommend downloading this Python 3 distribution: http://conda.pydata.org/miniconda.html (make you to download Python 3.5 not 2.7)
+- To use the python programs, version 3.8.6 is recommended
 
 This Pure Data external compressor: https://github.com/twobigears/tb_peakcomp/releases must be installed (download it and put into your PD path).
 
@@ -46,7 +46,14 @@ Several Python libraries are required. To install each, open up terminal and ent
     ```
     pip install mido
     ```
-
+    
+  - python-rtmidi (Python MIDI implementations)
+  
+    
+    ```
+    pip install python-rtmidi
+    ```
+    DO NOT TRY 'pip install rtmidi' instead, IT WON'T WORK)
 
 # Usage
 - The pure data patch must always be running (audio_engine.pd) with DSP turned on, make sure audio settings are set up so that your instrument's audio is routed into pure data.
