@@ -1,4 +1,4 @@
-#N canvas -8 -8 1920 997 10;
+#N canvas 711 -14 1283 988 10;
 #X obj 3 -67 cnv 20 1800 950 empty empty empty 12 20 0 14 -204800 -66577
 0;
 #X obj 1678 -68 cnv 15 2000 950 empty empty empty 20 12 0 14 -204786
@@ -628,7 +628,7 @@
 #X obj 788 283 spigot;
 #X msg 680 428 send /monophonic_signal \$1;
 #X obj 465 287 compressor~;
-#X obj 653 26 adc~ 2;
+#X obj 655 26 adc~ 2;
 #X obj 1053 168 mrpeach/udpreceive 9996;
 #X obj 1053 195 mrpeach/unpackOSC;
 #X obj 115 40 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 1
@@ -800,7 +800,7 @@
 #X obj 2609 110 loadbang;
 #X msg 2609 150 minvel 30;
 #X obj 2516 159 r~ track;
-#X obj 1361 262 s color;
+#X obj 1353 235 s color;
 #X obj 2668 312 r color;
 #X obj 2426 375 r color;
 #X obj 1919 1123 r color;
@@ -841,6 +841,8 @@
 #X msg 2226 1206 draw point;
 #X obj 2677 209 delay 60;
 #X obj 2498 335 % 1800;
+#X obj 2506 182 r~ guitar;
+#X obj 641 78 s~ guitar;
 #X connect 3 0 2 0;
 #X connect 4 0 6 0;
 #X connect 6 0 5 0;
@@ -880,6 +882,9 @@
 #X connect 47 0 46 0;
 #X connect 48 0 34 0;
 #X connect 49 0 36 0;
+#X connect 50 0 22 0;
+#X connect 50 0 101 0;
+#X connect 50 0 241 0;
 #X connect 51 0 52 0;
 #X connect 52 0 99 0;
 #X connect 53 0 54 0;
@@ -933,8 +938,6 @@
 #X connect 107 0 96 0;
 #X connect 108 0 98 0;
 #X connect 108 0 98 1;
-#X connect 108 0 22 0;
-#X connect 108 0 101 0;
 #X connect 109 0 74 0;
 #X connect 110 0 59 1;
 #X connect 112 0 66 1;
@@ -1090,3 +1093,4 @@
 #X connect 237 0 231 0;
 #X connect 238 0 197 1;
 #X connect 239 0 137 0;
+#X connect 240 0 196 0;
