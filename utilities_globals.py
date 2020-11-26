@@ -38,7 +38,7 @@ def normalize_vector(b):
         return None
 
 
-def create_notebins(min_note='C0', max_note='E7'):
+def create_notebins(min_note='C0', max_note='C8'):
     note_bins = [min_note]
     last_note = min_note
     idx = notenames.index(last_note[0])

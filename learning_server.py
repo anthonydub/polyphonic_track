@@ -21,25 +21,26 @@ from utilities_globals import *
 
 cnote = -1
 data_per_note = None
-
+i = 0
 
 def monophonic_handler(*args):
-    global cnote
-    m = int(np.round(float(args[1])))
-    m -= min_note_midi
-    print(m)
-    cnote = m
+	global cnote
+	m = int(np.round(float(args[1])))
+	m -= min_note_midi
+	cnote = m
 
 
 def fft_handler(*args):
     global data_per_note
-    if cnote >= 0 and cnote < len(data_per_note):
-        print("updating data for note:", pitches_per_index[cnote])
+    global i
+    i = i+1
+    if cnote >= 0 and cnote < len(data_per_note) and i == 20:
+        print("updating data for note:", pitches_per_index[cnote], "to", cnote)
         fft = args[1].split()
         fft = np.array([float(i) for i in fft])
         fft = normalize_vector(fft.reshape(1,-1))
         data_per_note[cnote] += [fft]
-
+    if i == 20: i=0 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -49,7 +50,7 @@ if __name__ == "__main__":
         type=int, default=9997, help="The port for server listen on")
     parser.add_argument("--clientport",
         type=int, default=9996, help="The client port")
-    parser.add_argument("--datafile", default="fretdata.p",
+    parser.add_argument("--datafile", default="guitare.p",
         help="File to write data to (extension should be '.p')")
     parser.add_argument("--minnote", default="E2")
     parser.add_argument("--maxnote", default="C#6")
