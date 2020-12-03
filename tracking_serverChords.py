@@ -33,10 +33,10 @@ hashMapChord = {}
 hashMapNote = {}
 index = 0
 baseChord = ""
+cpt = 0
 
 def on_handler(*args):
     global current_note_fft
-    print("on") # just for sanity checking
     current_note_fft = []
     return
 
@@ -46,7 +46,6 @@ def off_handler(*args):
     Send midi off messages to all active notes when we detect guitar string
     is no longer playing sound
     """
-    midiout.reset()
 
 
 def get_relevant_pitches(pitches, c):
@@ -55,7 +54,6 @@ def get_relevant_pitches(pitches, c):
 	This method takes the maximum coefficients of
 	a sparse encoding and determines which coefficients correspond to real notes"""
 	pitches = pitches[::-1]
-	midi = note_to_midi(pitches)
 	c = c[::-1]
 	#print(pitches)
 	#print(c)
@@ -64,11 +62,10 @@ def get_relevant_pitches(pitches, c):
 	allC = []
 	#print("Pitches ", pitches)
 	for i in range(0, len(pitches)):
-		
-		if pitches[i] in allP: # Si le nv tab contient la note (harmonie)
-			#print("Note ajoutee ", pitches[i])
+		if pitches[i] in allP: # Si le tab contient la note (harmonie)
 			allC[allP.index(pitches[i])] += c[i] # Additione le coeff de la note (harmonie)
 		else:
+			#print("Note ajoutee ", pitches[i])
 			allP.append(pitches[i]) # Sinon ajoute la note au tableau
 			allC.append(c[i])
 		#print("Pitches ", allP)
@@ -83,12 +80,12 @@ def get_relevant_pitches(pitches, c):
 	rel = list(set(rel))
 	return rel
 
-def sortChord(notes):
+def sortChord(notes): # Tri les notes pour former les accords
 	alphabet = {'C': 0, 'C#': 1, 'D': 2, 'D#': 3, 'E': 4, 'F': 5, 'F#': 6, 'G': 7, 'G#': 8, 'A': 9, 'A#': 10 ,'B': 11}
 	notes = sorted(notes, key=lambda word: [alphabet.get(c, ord(c)) for c in word])
 	return notes
 
-def getDiffNotes(notes):
+def getDiffNotes(notes): # Retire le numéro des octaves
 	for i in range(0, len(notes)):
 		if len(notes[i]) == 2:
 			notes[i] = notes[i][0:1]
@@ -96,20 +93,12 @@ def getDiffNotes(notes):
 			notes[i] = notes[i][0:2]
 	return notes
 
-
 def pickColorChord(chord):
 	global colors
 	global hashMapChord
 	global index
 	global baseChord
 	
-	if len(chord) > 1 and chord[1] == "#":
-		chord = chord[0]+chord[1]
-	else :
-		chord = chord[0]
-	if baseChord == "" or baseChord != chord:
-		baseChord = chord
-		print(baseChord)
 	if not chord in hashMapChord.keys():
 		hashMapChord[chord] = colors[index]
 		index += 1
@@ -122,43 +111,38 @@ def pickColorNote(note):
 	if not note in hashMapNote.keys():
 		hashMapNote[note] = colors[randint(0, len(colors)-1)]
 	return hashMapNote[note]
-		
+
 def getChords(notes):
-	if len(notes) > 1: # If two notes or more know the chord
-		if len(note_to_chord(notes)) != 0:
-			return pickColorChord(str(note_to_chord(notes)[0]))
-	#else: # If only one note returns the note
-		#return pickColorNote(str(notes[0]))
+	global cpt
+	global baseChord
+
+	#print(notes)
+
+	chord = note_to_chord(notes) # Convert notes to chord
+	if len(chord) == 0: # Si c'est pas un accord
+		return # Pas de changement de couleur
+	chord = str(chord[0]) # Si c'est un accord le passe en String
 	
+	#print(chord)
+	
+	chord = list(chord) # Si c'est un accord le passe en list
+	"""
+	if "/" in chord and chord[-1] != "#" : # Si accord renverse sans # a la fondamentale
+		chord[0] = chord[-1] # La fondamentale reprend leur place
+	elif  "/" in chord and chord[-1] == "#": # Si accord renverse avec # a la fondamentale
+			chord[0] = chord[-2] # La fondamentale et son # reprennent leur place
+			chord[1] = chord[-1]
+	"""
+	if len(chord) > 1 and chord[1] == "#": # Si c'est un accord avec un #
+		chord = chord[0]+chord[1] # L'accord prend comme nom sa fondamentale et son #
+	else :
+		chord = chord[0] # L'accord prend comme non sa fondamentale
+	
+	if baseChord == "" or baseChord != chord: # Si l'accord n'est pas le meme que l'ancien
+		baseChord = chord # L'accord devient l'accord de reference
+	print(chord)
+	return pickColorChord(chord)
 
-def sendMIDI_out(data):
-    #print('sending notes:', data)
-    midi = [int(m) for m in note_to_midi(data)]
-    for m in midi:
-        midiout.send(mido.Message('note_on', note=m, velocity=100))
-
-"""
-def sendOSC_for_PD_synth(comps):
-    n = 1
-    topones = []
-    ampsum = 0
-    for i in indices[:3]:
-        freq = comps[i]
-        freqi = np.argsort(freq)
-        topamp = np.max(freq)
-        topfreq = freqs[freqi[-1]]
-        topones += [(topfreq, topamp)]
-        ampsum += topamp
-    print("Top 3 freq/amp outputs")
-    for i, (freq,amp) in enumerate(topones):
-        msgf = '/freq'+str(i+1)
-        msga = '/amp'+str(i+1)
-        print(msgf)
-        print(freq, amp)
-        print(pitch(freq))
-        client.send_message(msgf, freq)
-        client.send_message(msga, amp)
-"""
 
 def send(color):
 	if color :
@@ -185,7 +169,9 @@ def fft_handler(*args):
 		coeffs = [s[i] for i in a[-NONZERO_COEFS:]]
 		pitches = [guitar_notes[i] for i in a[-NONZERO_COEFS:]]
 		d = getDiffNotes(pitches)
+		#print(d)
 		d = get_relevant_pitches(pitches, coeffs)
+		#print(d)
 		d = sortChord(d)
 		color = getChords(d)
 		send(color)
@@ -207,15 +193,6 @@ if __name__ == "__main__":
     parser.add_argument("--minnote", default='E2')
     parser.add_argument("--maxnote", default='C#6')
     args = parser.parse_args()
-    try:
-        midiout = mido.open_output(args.midi_port)
-    except:
-        print("The midi port {} could not be found".format(args.midi_port))
-        print("To run with a different midi port, rerun this program with the command line"+
-            "argument '--midi_port 'port name goes here' ")
-        print("Where 'port name goes here' corresponds to one of the following recognized midi ports:")
-        print(mido.get_output_names())
-        sys.exit()
 
     min_note = args.minnote
     max_note = args.maxnote
@@ -242,5 +219,4 @@ if __name__ == "__main__":
     try:
         server.serve_forever()
     except KeyboardInterrupt:
-        midiout.close();
         sys.exit()
