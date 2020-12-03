@@ -33,6 +33,8 @@ hashMapChord = {}
 hashMapNote = {}
 index = 0
 baseChord = ""
+prevNote = ""
+cpt = 0
 
 def on_handler(*args):
     global current_note_fft
@@ -97,7 +99,7 @@ def getDiffNotes(notes):
 	return notes
 
 
-def pickColorChord(chord):
+def pickColor(chord):
 	global colors
 	global hashMapChord
 	global index
@@ -115,20 +117,20 @@ def pickColorChord(chord):
 		index += 1
 	return hashMapChord[chord]
 
-def pickColorNote(note):
-	global colors
-	global hashMapNote
-	
-	if not note in hashMapNote.keys():
-		hashMapNote[note] = colors[randint(0, len(colors)-1)]
-	return hashMapNote[note]
-		
+
 def getChords(notes):
-	if len(notes) > 1: # If two notes or more know the chord
-		if len(note_to_chord(notes)) != 0:
-			return pickColorChord(str(note_to_chord(notes)[0]))
-	#else: # If only one note returns the note
-		#return pickColorNote(str(notes[0]))
+	global cpt
+	global prevNote
+	
+	if prevNote == str(notes[0]) and len(notes) < 4 :
+		cpt = cpt +1
+	else :
+		cpt = 0
+		prevNote = str(notes[0])
+	if cpt >= 2 :
+		print(str(notes[0]))
+		cpt = 0
+		return pickColor(str(notes[0]))
 	
 
 def sendMIDI_out(data):
@@ -186,8 +188,9 @@ def fft_handler(*args):
 		pitches = [guitar_notes[i] for i in a[-NONZERO_COEFS:]]
 		d = getDiffNotes(pitches)
 		d = get_relevant_pitches(pitches, coeffs)
-		d = sortChord(d)
+		#d = sortChord(d)
 		color = getChords(d)
+		
 		send(color)
 
 if __name__ == "__main__":
@@ -197,9 +200,9 @@ if __name__ == "__main__":
     parser.add_argument("--ip",
         default="127.0.0.1", help="The ip to listen on")
     parser.add_argument("--serverport",
-        type=int, default=9997, help="The port for server listen on")
+        type=int, default=9996, help="The port for server listen on")
     parser.add_argument("--clientport",
-        type=int, default=9996, help="The client port")
+        type=int, default=9993, help="The client port")
     parser.add_argument("--datafile", default="guitare.p",
         help="File to write data to (extension should be '.p')")
     parser.add_argument("--max_notes_per_chord", type=int, default=6)
